@@ -38,7 +38,11 @@ class augmentor:
             self.augmentFile(pair)
     
     def augmentFile(self, pair):
-        self.scaleAugment(pair)
+        #self.scaleAugment(pair)
+        #self.rotateAugment(pair)
+        #self.translateAugment(pair)
+        self.shearAugment(pair)
+
     def scaleAugment(self, pair):
         image = nib.load(pair["image"])
         label = nib.load(pair["label"])
@@ -63,8 +67,83 @@ class augmentor:
             nib.save(final_lbl, os.path.join(self.outputRepoPath,"{}".format(self.counter),"truth.nii.gz"))
             self.counter= self.counter+1 
 
+    def rotateAugment(self, pair):
+        image = nib.load(pair["image"])
+        label = nib.load(pair["label"])
+        image_matrix = image.get_fdata()
+        label_matrix = label.get_fdata()
+        image_matrix = np.expand_dims(image_matrix, 0)
+        label_matrix = np.expand_dims(label_matrix, 0)
+        d = np.pi/180
+        rotate_params=[(0,0,15*d), (0,0,-15*d)]
+
+        for p in rotate_params:
+            affine = Affine(rotate_params=p, padding_mode="reflection")
+            print(p)
+            new_img_matrix = affine(image_matrix, mode="nearest")
+            new_lbl_matrix = affine(label_matrix, mode="nearest")
+            final_img = nib.Nifti1Image(new_img_matrix[0], image.affine, image.header)
+            final_lbl = nib.Nifti1Image(new_lbl_matrix[0], label.affine, label.header)
+            try:
+                os.makedirs(os.path.join(self.outputRepoPath,"{}".format(self.counter)))
+            except OSError:
+                print ("failed to create the path")
+            nib.save(final_img, os.path.join(self.outputRepoPath,"{}".format(self.counter),"ct.nii.gz"))
+            nib.save(final_lbl, os.path.join(self.outputRepoPath,"{}".format(self.counter),"truth.nii.gz"))
+            self.counter= self.counter+1 
 
 
+
+    def translateAugment(self, pair):
+        image = nib.load(pair["image"])
+        label = nib.load(pair["label"])
+        image_matrix = image.get_fdata()
+        label_matrix = label.get_fdata()
+        image_matrix = np.expand_dims(image_matrix, 0)
+        label_matrix = np.expand_dims(label_matrix, 0)
+        d = np.pi/180
+        translate_params=[(50,50,0), (-50,-50,0)]
+
+        for p in translate_params:
+            affine = Affine(translate_params=p, padding_mode="reflection")
+            print(p)
+            new_img_matrix = affine(image_matrix, mode="nearest")
+            new_lbl_matrix = affine(label_matrix, mode="nearest")
+            final_img = nib.Nifti1Image(new_img_matrix[0], image.affine, image.header)
+            final_lbl = nib.Nifti1Image(new_lbl_matrix[0], label.affine, label.header)
+            try:
+                os.makedirs(os.path.join(self.outputRepoPath,"{}".format(self.counter)))
+            except OSError:
+                print ("failed to create the path")
+            nib.save(final_img, os.path.join(self.outputRepoPath,"{}".format(self.counter),"ct.nii.gz"))
+            nib.save(final_lbl, os.path.join(self.outputRepoPath,"{}".format(self.counter),"truth.nii.gz"))
+            self.counter= self.counter+1 
+
+
+    def shearAugment(self, pair):
+        image = nib.load(pair["image"])
+        label = nib.load(pair["label"])
+        image_matrix = image.get_fdata()
+        label_matrix = label.get_fdata()
+        image_matrix = np.expand_dims(image_matrix, 0)
+        label_matrix = np.expand_dims(label_matrix, 0)
+        d = np.pi/180
+        shear_params=[(0.5, 0, 0, 0, 0, 0), (0, 0, 0.5, 0, 0, 0)]
+
+        for p in shear_params:
+            affine = Affine(shear_params=p, padding_mode="reflection")
+            print(p)
+            new_img_matrix = affine(image_matrix, mode="nearest")
+            new_lbl_matrix = affine(label_matrix, mode="nearest")
+            final_img = nib.Nifti1Image(new_img_matrix[0], image.affine, image.header)
+            final_lbl = nib.Nifti1Image(new_lbl_matrix[0], label.affine, label.header)
+            try:
+                os.makedirs(os.path.join(self.outputRepoPath,"{}".format(self.counter)))
+            except OSError:
+                print ("failed to create the path")
+            nib.save(final_img, os.path.join(self.outputRepoPath,"{}".format(self.counter),"ct.nii.gz"))
+            nib.save(final_lbl, os.path.join(self.outputRepoPath,"{}".format(self.counter),"truth.nii.gz"))
+            self.counter= self.counter+1 
 
 
 
