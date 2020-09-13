@@ -11,7 +11,7 @@ import torch
 
 from monai.apps import download_and_extract
 from monai.config import print_config
-from monai.transforms import Affine, Rand2DElastic
+from monai.transforms import Affine, Rand2DElastic, RandAffine
 
 print_config()
 
@@ -41,7 +41,8 @@ class augmentor:
         #self.scaleAugment(pair)
         #self.rotateAugment(pair)
         #self.translateAugment(pair)
-        self.shearAugment(pair)
+        #self.shearAugment(pair)
+        self.randAffineAugment(pair)
 
     def scaleAugment(self, pair):
         image = nib.load(pair["image"])
@@ -145,6 +146,32 @@ class augmentor:
             nib.save(final_lbl, os.path.join(self.outputRepoPath,"{}".format(self.counter),"truth.nii.gz"))
             self.counter= self.counter+1 
 
+
+    def randAffineAugment(self, pair):
+        image = nib.load(pair["image"])
+        label = nib.load(pair["label"])
+        image_matrix = image.get_fdata()
+        label_matrix = label.get_fdata()
+        image_matrix = np.expand_dims(image_matrix, 0)
+        label_matrix = np.expand_dims(label_matrix, 0)
+        d = np.pi/180
+        affine = RandAffine(prob=1, rotate_range=(0,0,15*d), shear_range=(0.3, 0, 0.3, 0, 0, 0), translate_range=(50,50,2), scale_range=(0.1,0.1,0.1), padding_mode="reflection")
+
+        for i in range(5):
+            print(i)
+            affine.set_random_state(seed=i)
+            new_img_matrix = affine(image_matrix, mode="nearest")
+            affine.set_random_state(seed=i)
+            new_lbl_matrix = affine(label_matrix, mode="nearest")
+            final_img = nib.Nifti1Image(new_img_matrix[0], image.affine, image.header)
+            final_lbl = nib.Nifti1Image(new_lbl_matrix[0], label.affine, label.header)
+            try:
+                os.makedirs(os.path.join(self.outputRepoPath,"{}".format(self.counter)))
+            except OSError:
+                print ("failed to create the path")
+            nib.save(final_img, os.path.join(self.outputRepoPath,"{}".format(self.counter),"ct.nii.gz"))
+            nib.save(final_lbl, os.path.join(self.outputRepoPath,"{}".format(self.counter),"truth.nii.gz"))
+            self.counter= self.counter+1 
 
 
 
