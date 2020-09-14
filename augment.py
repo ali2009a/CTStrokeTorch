@@ -3,7 +3,7 @@ import glob
 import shutil
 import tempfile
 import nibabel as nib
-
+from tqdm import tqdm
 import matplotlib.pyplot as plt
 import numpy as np
 import PIL
@@ -33,7 +33,7 @@ class augmentor:
         return files
 
     def agumentFiles(self, files):
-        for pair in files[:1]:
+        for pair in tqdm(files):
             print(pair)
             self.augmentFile(pair)
     
@@ -208,10 +208,8 @@ class augmentor:
         )
 
 
-        for i in range(1):
-
+        for i in range(10):
             deformed_data_dict = rand_elastic(data_dict)
-            print(i)
             new_img_matrix, new_lbl_matrix = deformed_data_dict["image"][0], deformed_data_dict["label"][0]
             final_img = nib.Nifti1Image(new_img_matrix, data_dict["image_meta_dict"]["affine"])
             final_lbl = nib.Nifti1Image(new_lbl_matrix, data_dict["label_meta_dict"]["affine"])
