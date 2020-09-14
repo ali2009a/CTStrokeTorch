@@ -11,7 +11,7 @@ import torch
 
 from monai.apps import download_and_extract
 from monai.config import print_config
-from monai.transforms import Affine, Rand2DElastic, RandAffine
+from monai.transforms import Affine, Rand3DElasticd, RandAffine, LoadNifti, Orientationd, Spacingd, LoadNiftid, AddChanneld
 
 print_config()
 
@@ -33,7 +33,7 @@ class augmentor:
         return files
 
     def agumentFiles(self, files):
-        for pair in files[:2]:
+        for pair in files[:1]:
             print(pair)
             self.augmentFile(pair)
     
@@ -42,7 +42,8 @@ class augmentor:
         #self.rotateAugment(pair)
         #self.translateAugment(pair)
         #self.shearAugment(pair)
-        self.randAffineAugment(pair)
+        #self.randAffineAugment(pair)
+        self.randElasticAugment(pair)
 
     def scaleAugment(self, pair):
         image = nib.load(pair["image"])
@@ -155,14 +156,15 @@ class augmentor:
         image_matrix = np.expand_dims(image_matrix, 0)
         label_matrix = np.expand_dims(label_matrix, 0)
         d = np.pi/180
-        affine = RandAffine(prob=1, rotate_range=(0,0,15*d), shear_range=(0.3, 0, 0.3, 0, 0, 0), translate_range=(50,50,2), scale_range=(0.1,0.1,0.1), padding_mode="reflection")
+        affine_image = RandAffine(prob=1, rotate_range=(0,0,15*d), shear_range=(0.3, 0, 0.3, 0, 0, 0), translate_range=(50,50,2), scale_range=(0.1,0.1,0.1), padding_mode="border", mode="bilinear")
+        affine_label = RandAffine(prob=1, rotate_range=(0,0,15*d), shear_range=(0.3, 0, 0.3, 0, 0, 0), translate_range=(50,50,2), scale_range=(0.1,0.1,0.1), padding_mode="border", mode="nearest")
 
         for i in range(5):
             print(i)
             affine.set_random_state(seed=i)
-            new_img_matrix = affine(image_matrix, mode="nearest")
+            new_img_matrix = affine_image(image_matrix, mode="nearest")
             affine.set_random_state(seed=i)
-            new_lbl_matrix = affine(label_matrix, mode="nearest")
+            new_lbl_matrix = affine_label(label_matrix, mode="nearest")
             final_img = nib.Nifti1Image(new_img_matrix[0], image.affine, image.header)
             final_lbl = nib.Nifti1Image(new_lbl_matrix[0], label.affine, label.header)
             try:
@@ -176,6 +178,50 @@ class augmentor:
 
 
 
+    def randElasticAugment(self, pair):
+        print("augmenting using elastic deformation")
+        loader = LoadNiftid(keys=("image", "label"))
+        data_dict = loader(pair)
+
+        add_channel = AddChanneld(keys=["image", "label"])
+        data_dict = add_channel(data_dict)
+        
+        #spacing = Spacingd(keys=["image", "label"], pixdim=(1.5, 1.5, 5.0), mode=("bilinear", "nearest"))
+        #data_dict = spacing(datac_dict)
+        
+        #orientation = Orientationd(keys=["image", "label"], axcodes="PLI")
+        #data_dict = orientation(data_dict)
+        
+        d = np.pi/180
+
+        rand_elastic = Rand3DElasticd(
+            keys= ["image", "label"],
+            mode=("nearest", "nearest"),
+            prob=1.0,
+            sigma_range=(8, 11),
+            magnitude_range = (200, 300),
+            rotate_range = (0,0,15*d),
+            shear_range=(0.3, 0, 0.3, 0, 0, 0),
+            translate_range=(50,50,2),
+            scale_range=(0.1,0.1,0.1),
+            padding_mode="border"
+        )
+
+
+        for i in range(1):
+
+            deformed_data_dict = rand_elastic(data_dict)
+            print(i)
+            new_img_matrix, new_lbl_matrix = deformed_data_dict["image"][0], deformed_data_dict["label"][0]
+            final_img = nib.Nifti1Image(new_img_matrix, data_dict["image_meta_dict"]["affine"])
+            final_lbl = nib.Nifti1Image(new_lbl_matrix, data_dict["label_meta_dict"]["affine"])
+            try:
+                os.makedirs(os.path.join(self.outputRepoPath,"{}".format(self.counter)))
+            except OSError:
+                print ("failed to create the path")
+            nib.save(final_img, os.path.join(self.outputRepoPath,"{}".format(self.counter),"ct.nii.gz"))
+            nib.save(final_lbl, os.path.join(self.outputRepoPath,"{}".format(self.counter),"truth.nii.gz"))
+            self.counter= self.counter+1 
 
 
 
