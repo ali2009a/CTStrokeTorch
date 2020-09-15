@@ -3,6 +3,7 @@ import os
 from monai.transforms import Resized
 import tables
 from monai.transforms import Affine, Rand3DElasticd, RandAffine, LoadNifti, Orientationd, Spacingd, LoadNiftid, AddChanneld
+import pickle
 
 def fetch_training_data_files(path="data/original/train"):
     training_data_files = list()
@@ -81,4 +82,14 @@ def reslice_image_set(in_files, image_shape):
     resized_lbl = nib.Nifti1Image(new_lbl_matrix, data_dict["label_meta_dict"]["affine"])
     return [resized_img, resized_lbl]
 
+def open_data_file(filename, readwrite="r"):
+    return tables.open_file(filename, readwrite)
 
+def pickle_dump(item, out_file):
+    with open(out_file, "wb") as opened_file:
+        pickle.dump(item, opened_file)
+
+
+def pickle_load(in_file):
+    with open(in_file, "rb") as opened_file:
+        return pickle.load(opened_file)
