@@ -1,8 +1,10 @@
 import glob
 import os
 from monai.transforms import Resized
+import tables
+from monai.transforms import Affine, Rand3DElasticd, RandAffine, LoadNifti, Orientationd, Spacingd, LoadNiftid, AddChanneld
 
-def fetch_training_data_files(path):
+def fetch_training_data_files(path="data/original/train"):
     training_data_files = list()
     for subject_dir in glob.glob(os.path.join(path, "*")):
         subject_files = list()
@@ -23,12 +25,13 @@ def write_data_to_file(training_data_files, out_file, image_shape, normalize=Tru
                                                                                   image_shape=image_shape)
     except Exception as e:
         # If something goes wrong, delete the incomplete data file
-        os.remove(out_file)
+        #os.remove(out_file)
+        print("hdf5 file creation failed")
         raise e
 
     write_image_data_to_file(training_data_files, data_storage, truth_storage, image_shape, affine_storage=affine_storage)
-    if normalize:
-        normalize_data_storage(data_storage)
+    #if normalize:
+    #    normalize_data_storage(data_storage)
     hdf5_file.close()
     return out_file
 
@@ -50,7 +53,7 @@ def create_data_file(out_file, n_channels, n_samples, image_shape):
 
 def write_image_data_to_file(image_files, data_storage, truth_storage, image_shape, affine_storage):
     for set_of_files in image_files:
-        images = reslice_image_set(set_of_files, image_shape, label_indices=len(set_of_files) - 1)
+        images = reslice_image_set(set_of_files, image_shape)
         subject_data = [image.get_data() for image in images]
         add_data_to_storage(data_storage, truth_storage, affine_storage, subject_data, images[0].affine)
     return data_storage, truth_storage
@@ -65,10 +68,10 @@ def add_data_to_storage(data_storage, truth_storage, affine_storage, subject_dat
     affine_storage.append(np.asarray(affine)[np.newaxis])
 
 
-def reslice_image_set(in_files, image_shape, out_files=None, label_indices=None):
+def reslice_image_set(in_files, image_shape):
     data_dict = {"image":in_files[0], "label":in_files[1]}
     loader = LoadNiftid(keys=("image", "label"))
-    data_dict = loader(pair)
+    data_dict = loader(data_dict)
     add_channel = AddChanneld(keys=["image", "label"])
     data_dict = add_channel(data_dict)
     resize = Resized(["image", "label"], image_shape)
