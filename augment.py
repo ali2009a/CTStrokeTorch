@@ -33,7 +33,7 @@ class augmentor:
         return files
 
     def agumentFiles(self, files):
-        for pair in tqdm(files):
+        for pair in tqdm(files[:1]):
             print(pair)
             self.augmentFile(pair)
     
@@ -208,7 +208,7 @@ class augmentor:
         )
 
 
-        for i in range(10):
+        for i in range(1):
             deformed_data_dict = rand_elastic(data_dict)
             new_img_matrix, new_lbl_matrix = deformed_data_dict["image"][0], deformed_data_dict["label"][0]
             final_img = nib.Nifti1Image(new_img_matrix, data_dict["image_meta_dict"]["affine"])
