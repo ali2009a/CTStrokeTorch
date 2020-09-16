@@ -3,6 +3,7 @@ from data import pickle_dump, pickle_load
 import data
 import itertools
 import numpy as np
+import os
 
 def get_training_and_validation_generators(data_file, batch_size=4, data_split=0.8, validation_keys_file="val_keys.pkl", training_keys_file="train_keys.pkl", slice_based=True, validation_batch_size=4, skip_blank=False):
     training_list, validation_list = get_validation_split(data_file, 
@@ -45,8 +46,6 @@ def get_number_of_instances(data_file, index_list, slice_based=True, skip_blank=
         skiped_slices=[]
         z = data_file.root.data.shape[-1]
         index_list = create_slice_index_list(index_list,z)
-        data.pickle_dump(index_list, "index_list.pkl")
-        print("len index_list inside:{}".format(len(index_list)))
         count = 0
         for c, index in enumerate(index_list):
             x_list = list()
@@ -56,7 +55,6 @@ def get_number_of_instances(data_file, index_list, slice_based=True, skip_blank=
                 count += 1
             else:
                 skiped_slices.append((c,index))
-        data.pickle_dump(skiped_slices,"skp_slices.pkl")
         return count
     else:
         return len(index_list)

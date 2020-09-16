@@ -16,15 +16,15 @@ if "slice_based" in config and config["slice_based"] is True:
 else:
     config["input_shape"] = tuple([config["nb_channels"]] + list(config["image_shape"]))
 config["deconvolution"] = True  # if False, will use upsampling instead of deconvolution
-config["batch_size"] = 5
-config["validation_batch_size"] = 5
-config["n_epochs"] = 2  # cutoff the training after this many epochs
+config["batch_size"] = 20
+config["validation_batch_size"] = 20
+config["n_epochs"] = 200  # cutoff the training after this many epochs
 config["patience"] = 10  # learning rate will be reduced after this many epochs if the validation loss is not improving
 config["early_stop"] = 50  # training will be stopped after this many epochs without the validation loss improving
 config["initial_learning_rate"] = 0.00001
 config["learning_rate_drop"] = 0.5  # factor by which the learning rate will be reduced
 config["validation_split"] = 0.8  # portion of the data that will be used for training
-config["skip_blank"] = False  # if True, then patches without any target will be skipped
+config["skip_blank"] = True  # if True, then patches without any target will be skipped
 
 config["data_file"] = os.path.abspath("ich_ct_data.h5")
 config["model_file"] = os.path.abspath("ich_segmentation_model.h5")
@@ -41,7 +41,7 @@ def main(overwrite=False):
         data.write_data_to_file(training_files, config["data_file"], image_shape=config["image_shape"])
     data_file_opened = data.open_data_file(config["data_file"])
 
-    if not os.path.exists(config["model_file"]):
+    if os.path.exists(config["model_file"]):
         model = load_old_model(config["model_file"])
     else:
         # instantiate new model
