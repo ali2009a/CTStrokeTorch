@@ -5,6 +5,9 @@ from keras.models import load_model
 #K.set_image_dim_ordering('th')
 K.set_image_data_format('channels_first')
 
+def load_old_model(model_file):
+    return load_model(model_file)
+
 def train_model(model, model_file, training_generator, validation_generator, steps_per_epoch, validation_steps,
                 initial_learning_rate=0.001, learning_rate_drop=0.5, learning_rate_epochs=None, n_epochs=500,
                 learning_rate_patience=20, early_stopping_patience=None):

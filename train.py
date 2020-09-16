@@ -2,7 +2,7 @@ import os
 import data
 from model import unet_model_2d
 import generator
-from training import train_model
+from training import train_model, load_old_model
 
 config = dict()
 config["pool_size"] = (2, 2)  # pool size for the max pooling operations
@@ -41,7 +41,7 @@ def main(overwrite=False):
         data.write_data_to_file(training_files, config["data_file"], image_shape=config["image_shape"])
     data_file_opened = data.open_data_file(config["data_file"])
 
-    if not overwrite and os.path.exists(config["model_file"]):
+    if not os.path.exists(config["model_file"]):
         model = load_old_model(config["model_file"])
     else:
         # instantiate new model
