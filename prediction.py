@@ -7,6 +7,7 @@ import time
 from training import load_old_model
 from data  import pickle_load
 #from .utils.patches import reconstruct_from_patches, get_patch_from_3d_data, compute_patch_indices
+from monai.transforms import Resize
 
 def reconstruct_from_slices(output_shape, slices):
     data = np.ones(output_shape)
@@ -71,19 +72,28 @@ def prediction_to_image(prediction, affine, label_map=True, threshold=0.5, label
         data = label_map_data
     return nib.Nifti1Image(data, affine)
 
+def resize_to_original_size(image, original_size):
+    original_size = [int(dim) for dim in original_size]
+    resize = Resize(original_size, mode="nearest")
+    resized_data = resize(image.get_fdata()[np.newaxis])
+    resized_img = nib.Nifti1Image(resized_data[0], image.affine)
+    return resized_img
 
 def run_validation_case(data_index, output_dir, model, data_file,
                         output_label_map=False, threshold=0.5, labels=None, batch_size=1):
     if not os.path.exists(output_dir):
         os.makedirs(output_dir)
-
+    original_size=  data_file.root.size[data_index]
+    print (original_size)
     affine = data_file.root.affine[data_index]
     test_data = np.asarray([data_file.root.data[data_index]])
     
     image = nib.Nifti1Image(test_data[0, 0], affine)
+    image = resize_to_original_size(image, original_size)
     image.to_filename(os.path.join(output_dir, "data_ct.nii.gz"))
 
     test_truth = nib.Nifti1Image(data_file.root.truth[data_index][0], affine)
+    test_truth = resize_to_original_size(test_truth, original_size)
     test_truth.to_filename(os.path.join(output_dir, "truth.nii.gz"))
 
     
@@ -100,6 +110,7 @@ def run_validation_case(data_index, output_dir, model, data_file,
         for i, image in enumerate(prediction_image):
             image.to_filename(os.path.join(output_dir, "prediction_{0}.nii.gz".format(i + 1)))
     else:
+        prediction_image = resize_to_original_size(prediction_image, original_size)
         prediction_image.to_filename(os.path.join(output_dir, "prediction.nii.gz"))
 
 

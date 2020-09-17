@@ -21,7 +21,7 @@ def write_data_to_file(training_data_files, out_file, image_shape, normalize=Tru
     n_channels = 1
 
     try:
-        hdf5_file, data_storage, truth_storage, affine_storage = create_data_file(out_file,
+        hdf5_file, data_storage, truth_storage, affine_storage, size_storage = create_data_file(out_file,
                                                                                   n_channels=n_channels,
                                                                                   n_samples=n_samples,
                                                                                   image_shape=image_shape)
@@ -31,7 +31,7 @@ def write_data_to_file(training_data_files, out_file, image_shape, normalize=Tru
         print("hdf5 file creation failed")
         raise e
 
-    write_image_data_to_file(training_data_files, data_storage, truth_storage, image_shape, affine_storage=affine_storage)
+    write_image_data_to_file(training_data_files, data_storage, truth_storage, image_shape, affine_storage=affine_storage, size_storage=size_storage)
     #if normalize:
     #    normalize_data_storage(data_storage)
     hdf5_file.close()
@@ -49,26 +49,28 @@ def create_data_file(out_file, n_channels, n_samples, image_shape):
                                             filters=filters, expectedrows=n_samples)
     affine_storage = hdf5_file.create_earray(hdf5_file.root, 'affine', tables.Float32Atom(), shape=(0, 4, 4),
                                              filters=filters, expectedrows=n_samples)
-    return hdf5_file, data_storage, truth_storage, affine_storage
+    size_storage = hdf5_file.create_earray(hdf5_file.root, 'size', tables.Float32Atom(), shape=(0, 3),
+                                                     filters=filters, expectedrows=n_samples)
+    return hdf5_file, data_storage, truth_storage, affine_storage, size_storage
 
 
 
-def write_image_data_to_file(image_files, data_storage, truth_storage, image_shape, affine_storage):
+def write_image_data_to_file(image_files, data_storage, truth_storage, image_shape, affine_storage, size_storage):
     for set_of_files in tqdm(image_files):
         images = reslice_image_set(set_of_files, image_shape)
         subject_data = [image.get_data() for image in images]
-        add_data_to_storage(data_storage, truth_storage, affine_storage, subject_data, images[0].affine)
+        add_data_to_storage(data_storage, truth_storage, affine_storage, size_storage, subject_data, images[0].affine, images[0].shape)
     return data_storage, truth_storage
 
 
-def add_data_to_storage(data_storage, truth_storage, affine_storage, subject_data, affine, n_channels=1):
+def add_data_to_storage(data_storage, truth_storage, affine_storage, size_storage, subject_data, affine, image_size, n_channels=1):
     data_storage.append(np.asarray(subject_data[:n_channels])[np.newaxis])
     truthData = subject_data[n_channels]
     truthData = np.rint(truthData)
     truthData = truthData.astype(np.uint8)
     truth_storage.append(truthData[np.newaxis][np.newaxis])
     affine_storage.append(np.asarray(affine)[np.newaxis])
-
+    size_storage.append(np.asarray(image_size)[np.newaxis])
 
 def reslice_image_set(in_files, image_shape):
     data_dict = {"image":in_files[0], "label":in_files[1]}

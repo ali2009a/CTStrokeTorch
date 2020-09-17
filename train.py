@@ -6,7 +6,7 @@ from training import train_model, load_old_model
 
 config = dict()
 config["pool_size"] = (2, 2)  # pool size for the max pooling operations
-config["image_shape"] = (256, 256, 64)  # This determines what shape the images will be cropped/resampled to.
+config["image_shape"] = (128, 128, 64)  # This determines what shape the images will be cropped/resampled to.
 config["labels"] = (1,)  # the label numbers on the input image
 config["n_labels"] = len(config["labels"])
 config["nb_channels"] = 1
