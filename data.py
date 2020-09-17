@@ -2,8 +2,9 @@ import glob
 import os
 from monai.transforms import Resized
 import tables
-from monai.transforms import Affine, Rand3DElasticd, RandAffine, LoadNifti, Orientationd, Spacingd, LoadNiftid, AddChanneld
+from monai.transforms import Affine, Rand3DElasticd, RandAffine, LoadNifti, Orientationd, Spacingd, LoadNiftid, AddChanneld, ScaleIntensityRanged
 import pickle
+from tqdm import tqdm
 
 def fetch_training_data_files(path="data/original/train"):
     training_data_files = list()
@@ -53,7 +54,7 @@ def create_data_file(out_file, n_channels, n_samples, image_shape):
 
 
 def write_image_data_to_file(image_files, data_storage, truth_storage, image_shape, affine_storage):
-    for set_of_files in image_files:
+    for set_of_files in tqdm(image_files):
         images = reslice_image_set(set_of_files, image_shape)
         subject_data = [image.get_data() for image in images]
         add_data_to_storage(data_storage, truth_storage, affine_storage, subject_data, images[0].affine)
@@ -77,6 +78,7 @@ def reslice_image_set(in_files, image_shape):
     data_dict = add_channel(data_dict)
     resize = Resized(["image", "label"], image_shape)
     data_dict = resize(data_dict)
+    ScaleIntensityRanged(keys=["image"], a_min=30, a_max=130, b_min=0.0, b_max=1.0, clip=True),
     new_img_matrix, new_lbl_matrix = data_dict["image"][0], data_dict["label"][0]
     resized_img = nib.Nifti1Image(new_img_matrix, data_dict["image_meta_dict"]["affine"])
     resized_lbl = nib.Nifti1Image(new_lbl_matrix, data_dict["label_meta_dict"]["affine"])

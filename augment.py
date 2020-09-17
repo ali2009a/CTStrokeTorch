@@ -33,8 +33,7 @@ class augmentor:
         return files
 
     def agumentFiles(self, files):
-        for pair in tqdm(files[:1]):
-            print(pair)
+        for pair in tqdm(files):
             self.augmentFile(pair)
     
     def augmentFile(self, pair):
@@ -199,7 +198,7 @@ class augmentor:
             mode=("nearest", "nearest"),
             prob=1.0,
             sigma_range=(8, 11),
-            magnitude_range = (200, 300),
+            magnitude_range = (100, 200),
             rotate_range = (0,0,15*d),
             shear_range=(0.3, 0, 0.3, 0, 0, 0),
             translate_range=(50,50,2),
@@ -208,7 +207,7 @@ class augmentor:
         )
 
 
-        for i in range(1):
+        for i in range(10):
             deformed_data_dict = rand_elastic(data_dict)
             new_img_matrix, new_lbl_matrix = deformed_data_dict["image"][0], deformed_data_dict["label"][0]
             final_img = nib.Nifti1Image(new_img_matrix, data_dict["image_meta_dict"]["affine"])
@@ -223,15 +222,10 @@ class augmentor:
 
 
 
-
-
-
-
-
-
-
-
-
+def main():
+    aug = augmentor("data/original/train/","data/augmented/train/")
+    files=  aug.fetchImagePaths()
+    aug.agumentFiles(files)
 
 
 

@@ -4,13 +4,16 @@ import data
 import itertools
 import numpy as np
 import os
+from tqdm import tqdm
 
 def get_training_and_validation_generators(data_file, batch_size=4, data_split=0.8, validation_keys_file="val_keys.pkl", training_keys_file="train_keys.pkl", slice_based=True, validation_batch_size=4, skip_blank=False):
+    print("generating the training/validation split")
     training_list, validation_list = get_validation_split(data_file, 
                                                           training_keys_file=training_keys_file,  
                                                           validation_keys_file=validation_keys_file,
                                                           data_split = data_split)
 
+    print("creating the generators...")
     training_generator = data_generator(data_file, training_list,
                                         batch_size=batch_size,
                                         slice_based = slice_based,
@@ -19,6 +22,7 @@ def get_training_and_validation_generators(data_file, batch_size=4, data_split=0
                                         batch_size=batch_size,
                                         slice_based=slice_based,
                                         skip_blank=skip_blank)
+    print ("computing the #training/validation steps...")
     num_training_steps = get_number_of_steps(get_number_of_instances(data_file, training_list.copy(), slice_based, skip_blank), batch_size)
     num_validation_steps = get_number_of_steps(get_number_of_instances(data_file, validation_list.copy(), slice_based, skip_blank), batch_size)
     return [training_generator, validation_generator, num_training_steps, num_validation_steps]                                        
@@ -43,18 +47,15 @@ def data_generator(data_file, index_list, batch_size, slice_based=True, skip_bla
 
 def get_number_of_instances(data_file, index_list, slice_based=True, skip_blank=True):
     if slice_based:
-        skiped_slices=[]
         z = data_file.root.data.shape[-1]
         index_list = create_slice_index_list(index_list,z)
         count = 0
-        for c, index in enumerate(index_list):
+        for index in tqdm(index_list):
             x_list = list()
             y_list = list()
             add_data(x_list, y_list, data_file, index, slice_based, skip_blank)
             if len(x_list) > 0:
                 count += 1
-            else:
-                skiped_slices.append((c,index))
         return count
     else:
         return len(index_list)
