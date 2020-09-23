@@ -116,10 +116,14 @@ def run_validation_case(data_index, output_dir, model, data_file,
 
 def run_validation_cases(validation_keys_file, model_file, labels, hdf5_file,
                          output_label_map=False, output_dir=".", threshold=0.5, batch_size=1):
-    validation_indices = pickle_load(validation_keys_file)
-    validation_indices=[0]
-    model = load_old_model(model_file)
     data_file = tables.open_file(hdf5_file, "r")
+    if validation_keys_file:
+        validation_indices = pickle_load(validation_keys_file)
+        validation_indices=validation_indices[:4]
+    else:
+        sample_num= len(data_file.root.data)
+        validation_indices = list(range(sample_num))
+    model = load_old_model(model_file)
     for index in validation_indices:
         if 'subject_ids' in data_file.root:
             case_directory = os.path.join(output_dir, data_file.root.subject_ids[index].decode('utf-8'))
@@ -134,6 +138,7 @@ def run_validation_cases(validation_keys_file, model_file, labels, hdf5_file,
         print ("time:",end - start)
         
     data_file.close()
+
 
 
 def predict(model, data):

@@ -38,8 +38,8 @@ def main(overwrite=False):
     # convert input images into an hdf5 file
     if not os.path.exists(config["data_file"]):
         print("Writing the images to h5 file...")
-        training_files = data.fetch_training_data_files(config["train_repo"])
-        data.write_data_to_file(training_files, config["data_file"], image_shape=config["image_shape"])
+        training_files, subject_ids = data.fetch_training_data_files(config["train_repo"])
+        data.write_data_to_file(training_files, config["data_file"], image_shape=config["image_shape"], subject_ids=subject_ids)
     data_file_opened = data.open_data_file(config["data_file"])
 
     print("Creating/loading the model")
