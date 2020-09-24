@@ -1,13 +1,14 @@
 from keras import backend as K
 from keras.callbacks import ModelCheckpoint, CSVLogger, LearningRateScheduler, ReduceLROnPlateau, EarlyStopping
 from keras.models import load_model
-from my_metrics import dice_coefficient, dice_coefficient_loss
+from my_metrics import dice_coefficient, dice_coefficient_loss, weighted_dice_coefficient, weighted_dice_coefficient_loss
+from keras_contrib.layers.normalization import InstanceNormalization
 
 #K.set_image_dim_ordering('th')
 K.set_image_data_format('channels_first')
 
 def load_old_model(model_file):
-    custom_objects = {'dice_coefficient_loss': dice_coefficient_loss,'dice_coefficient': dice_coefficient}
+    custom_objects = {'dice_coefficient_loss': dice_coefficient_loss,'dice_coefficient': dice_coefficient, "InstanceNormalization":InstanceNormalization, 'weighted_dice_coefficient': weighted_dice_coefficient, 'weighted_dice_coefficient_loss': weighted_dice_coefficient_loss}
     return load_model(model_file, custom_objects)
 
 # learning rate schedule

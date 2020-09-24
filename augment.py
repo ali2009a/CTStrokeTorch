@@ -8,7 +8,7 @@ import matplotlib.pyplot as plt
 import numpy as np
 import PIL
 import torch
-
+import gc
 from monai.apps import download_and_extract
 from monai.config import print_config
 from monai.transforms import Affine, Rand3DElasticd, RandAffine, LoadNifti, Orientationd, Spacingd, LoadNiftid, AddChanneld
@@ -219,7 +219,7 @@ class augmentor:
             nib.save(final_img, os.path.join(self.outputRepoPath,"{}".format(self.counter),"ct.nii.gz"))
             nib.save(final_lbl, os.path.join(self.outputRepoPath,"{}".format(self.counter),"truth.nii.gz"))
             self.counter= self.counter+1 
-
+            gc.collect()
 
 
 def main():

@@ -99,10 +99,10 @@ def run_validation_case(data_index, output_dir, model, data_file,
     
     input_shape  = tuple([int(dim) for dim in model.input.shape[1:]]) # (1, 256, 256) for slices based
     #print ("before precition\n")
-    print ("data shape:")
-    print (test_data.shape)
-    if len(input_shape) == len(test_data.shape[1:]):
-        prediction = predict(model, test_data) #used np to add a new axis, it might be wrong
+    print("test date shape:")
+    print(test_data.shape)
+    if len(input_shape) == len(test_data.shape):
+        prediction = predict(model, test_data[np.newaxis]) #used np to add a new axis, it might be wrong
     else:
         #add new axis for batch dimension
         prediction = slice_based_prediction(model=model, data=test_data, batch_size=batch_size)[np.newaxis][np.newaxis]
