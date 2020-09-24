@@ -85,7 +85,7 @@ def reslice_image_set(in_files, image_shape):
     data_dict = add_channel(data_dict)
     resize = Resized(["image", "label"], image_shape)
     data_dict = resize(data_dict)
-    ScaleIntensityRanged(keys=["image"], a_min=30, a_max=130, b_min=0.0, b_max=1.0, clip=True),
+    ScaleIntensityRanged(keys=["image"], a_min=50, a_max=100, b_min=0, b_max=1, clip=True), #30-130
     new_img_matrix, new_lbl_matrix = data_dict["image"][0], data_dict["label"][0]
     resized_img = nib.Nifti1Image(new_img_matrix, data_dict["image_meta_dict"]["affine"])
     resized_lbl = nib.Nifti1Image(new_lbl_matrix, data_dict["label_meta_dict"]["affine"])
