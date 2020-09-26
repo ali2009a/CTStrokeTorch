@@ -35,7 +35,7 @@ def get_callbacks(model_file, initial_learning_rate=0.0001, learning_rate_drop=0
 
 def train_model(model, model_file, training_generator, validation_generator, steps_per_epoch, validation_steps,
                 initial_learning_rate=0.001, learning_rate_drop=0.5, learning_rate_epochs=None, n_epochs=500,
-                learning_rate_patience=20, early_stopping_patience=None):
+                learning_rate_patience=20, early_stopping_patience=None, logging_file="training.log"):
     model_checkpoint = ModelCheckpoint(model_file, monitor='val_loss', save_best_only=True)
     model.fit_generator(generator=training_generator,
                         steps_per_epoch=steps_per_epoch,
@@ -47,5 +47,6 @@ def train_model(model, model_file, training_generator, validation_generator, ste
                                                 learning_rate_drop=learning_rate_drop,
                                                 learning_rate_epochs=learning_rate_epochs,
                                                 learning_rate_patience=learning_rate_patience,
-                                                early_stopping_patience=early_stopping_patience))
+                                                early_stopping_patience=early_stopping_patience,
+                                                logging_file= logging_file))
 
