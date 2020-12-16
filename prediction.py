@@ -101,8 +101,10 @@ def run_validation_case(data_index, output_dir, model, data_file,
     #print ("before precition\n")
     print("test date shape:")
     print(test_data.shape)
-    if len(input_shape) == len(test_data.shape):
-        prediction = predict(model, test_data[np.newaxis]) #used np to add a new axis, it might be wrong
+    print ("input shape:")
+    print(input_shape)
+    if len(input_shape) == len(test_data.shape)-1:
+        prediction = predict(model, test_data) #used np to add a new axis, it might be wrong
     else:
         #add new axis for batch dimension
         prediction = slice_based_prediction(model=model, data=test_data, batch_size=batch_size)[np.newaxis][np.newaxis]
@@ -144,6 +146,9 @@ def run_validation_cases(validation_keys_file, model_file, labels, hdf5_file,
 
 
 def predict(model, data):
+    print("shape:")
+    print(data.shape)
+    print (model.input.shape)
     return model.predict(data)
 
 

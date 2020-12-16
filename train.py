@@ -7,22 +7,22 @@ import argparse
 
 config = dict()
 config["pool_size"] = (2, 2)  # pool size for the max pooling operations
-config["image_shape"] = (64, 64, 32)  # This determines what shape the images will be cropped/resampled to.
+#config["image_shape"] = (256, 256, 64)  # This determines what shape the images will be cropped/resampled to.
 config["labels"] = (1,)  # the label numbers on the input image
 config["n_labels"] = len(config["labels"])
 config["nb_channels"] = 1
 config["slice_based"] = True
-if "slice_based" in config and config["slice_based"] is True:
-    config["input_shape"] = tuple([config["nb_channels"]] + list(config["image_shape"][:-1]))
-else:
-    config["input_shape"] = tuple([config["nb_channels"]] + list(config["image_shape"]))
+#iif "slice_based" in config and config["slice_based"] is True:
+#    config["input_shape"] = tuple([config["nb_channels"]] + list(config["image_shape"][:-1]))
+#else:
+#    config["input_shape"] = tuple([config["nb_channels"]] + list(config["image_shape"]))
 config["deconvolution"] = False  # if False, will use upsampling instead of deconvolution
 config["batch_size"] = 20
 config["validation_batch_size"] = 20
-config["n_epochs"] = 200  # cutoff the training after this many epochs
+config["n_epochs"] = 300  # cutoff the training after this many epochs
 config["patience"] = 10  # learning rate will be reduced after this many epochs if the validation loss is not improving
 config["early_stop"] = 50  # training will be stopped after this many epochs without the validation loss improving
-config["initial_learning_rate"] = 0.0001
+config["initial_learning_rate"] = 0.00001
 config["learning_rate_drop"] = 0.5  # factor by which the learning rate will be reduced
 config["validation_split"] = 0.8  # portion of the data that will be used for training
 config["skip_blank"] = True  # if True, then patches without any target will be skipped
@@ -90,6 +90,7 @@ def main(overwrite=False, training_repo="data/preprocessed", logging_file="train
 
 if __name__ == "__main__":
     parser = argparse.ArgumentParser()
+    parser.add_argument("image_shape", help="final image shape")
     parser.add_argument("data_file", help="absolute path to the h5 date file")
     parser.add_argument("model_file", help="absolute path to the model file")
     parser.add_argument("training_keys_file", help="absolute path to the training keys")
@@ -103,5 +104,7 @@ if __name__ == "__main__":
     config["training_file"] = args.training_keys_file
     config["validation_file"] = args.validation_keys_file
     config["logging_file"] = args.logging_file
+    config["image_shape"] = eval(args.image_shape)
+    config["input_shape"] = tuple([config["nb_channels"]] + list(config["image_shape"][:-1]))
     main(overwrite=config["overwrite"], training_repo=config["training_repo"], logging_file = config["logging_file"])
 
